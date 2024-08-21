@@ -37,6 +37,11 @@ class Hashcat < Formula
     depends_on "pocl"
   end
 
+  # Fix 'failed to create metal library' on macos
+  # extract from hashcat version 66b22fa, remove this patch when version released after 66b22fa
+  # hashcat 66b22fa link: https://github.com/hashcat/hashcat/commit/66b22fa64472b4d809743c35fb05fc3c993a5cd2#diff-1eece723a1d42fd48f0fc4f829ebbb4a67bd13cb3499f49196f801ee9143ee83R15
+  patch :DATA
+
   def install
     args = %W[
       CC=#{ENV.cc}
@@ -58,3 +63,18 @@ class Hashcat < Formula
     assert_match "Hash-Mode 0 (MD5)", shell_output("#{bin}/hashcat_bin --benchmark -m 0 -D 1,2 -w 2")
   end
 end
+
+__END__
+diff --git a/OpenCL/inc_vendor.h b/OpenCL/inc_vendor.h
+index c39fce952..0916a30b3 100644
+--- a/OpenCL/inc_vendor.h
++++ b/OpenCL/inc_vendor.h
+@@ -12,7 +12,7 @@
+ #define IS_CUDA
+ #elif defined __HIPCC__
+ #define IS_HIP
+-#elif defined __METAL_MACOS__
++#elif defined __METAL__
+ #define IS_METAL
+ #else
+ #define IS_OPENCL
